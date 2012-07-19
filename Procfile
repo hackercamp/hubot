@@ -1,1 +1,1 @@
-web: bin/hubot -a campfire -n heatdirector
+web: bin/hubot -a campfire -n h
