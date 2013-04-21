@@ -77,9 +77,9 @@ class Robot
 
     if @alias
       alias = @alias.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') # escape alias for regexp
-      newRegex = new RegExp("^(?:#{alias}[:,]?|#{@name}[:,]?)\\s*(?:#{pattern})", modifiers)
+      newRegex = new RegExp("^(?:#{alias}[:,]?|#{@name}[:,]?)\\s+(?:#{pattern})", modifiers)
     else
-      newRegex = new RegExp("^#{@name}[:,]?\\s*(?:#{pattern})", modifiers)
+      newRegex = new RegExp("^#{@name}[:,]?\\s+(?:#{pattern})", modifiers)
 
     @logger.debug newRegex.toString()
     @listeners.push new TextListener(@, newRegex, callback)
