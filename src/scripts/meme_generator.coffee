@@ -1,119 +1,145 @@
-# Integrates with memegenerator.net
+# Description:
+#   Integrates with memegenerator.net
 #
-# Y U NO <text>              - Generates the Y U NO GUY with the bottom caption
-#                              of <text>
+# Dependencies:
+#   None
 #
-# I don't always <something> but when i do <text> - Generates The Most Interesting man in the World
+# Configuration:
+#   HUBOT_MEMEGEN_USERNAME
+#   HUBOT_MEMEGEN_PASSWORD
+#   HUBOT_MEMEGEN_DIMENSIONS
 #
-# <text> (SUCCESS|NAILED IT) - Generates success kid with the top caption of <text>
+# Commands:
+#   hubot memegen Y U NO <text>  - Generates the Y U NO GUY with the bottom caption of <text>
+#   hubot memegen I don't always <something> but when i do <text> - Generates The Most Interesting man in the World
+#   hubot memegen <text> ORLY? - Generates the ORLY? owl with the top caption of <text>
+#   hubot memegen <text> (SUCCESS|NAILED IT) - Generates success kid with the top caption of <text>
+#   hubot memegen <text> ALL the <things> - Generates ALL THE THINGS
+#   hubot memegen <text> TOO DAMN <high> - Generates THE RENT IS TOO DAMN HIGH guy
+#   hubot memegen good news everyone! <news> - Generates Professor Farnsworth
+#   hubot memegen khanify <text> - TEEEEEEEEEEEEEEEEEXT!
+#   hubot memegen Not sure if <text> or <text> - Generates Futurama Fry
+#   hubot memegen Yo dawg <text> so <text> - Generates Yo Dawg
+#   hubot memegen ALL YOUR <text> ARE BELONG TO US - Generates Zero Wing with the caption of <text>
+#   hubot memegen if <text>, <word that can start a question> <text>? - Generates Philosoraptor
+#   hubot memegen <text> FUCK YOU - Angry Linus
+#   hubot memegen (Oh|You) <text> (Please|Tell) <text> - Willy Wonka
+#   hubot memegen <text> you're gonna have a bad time - Bad Time Ski Instructor
+#   hubot memegen one does not simply <text> - Lord of the Rings Boromir
+#   hubot memegen it looks like (you|you're) <text> - Generates Clippy
 #
-# <text> ALL the <things>    - Generates ALL THE THINGS
-#
-# <text> TOO DAMN <high> - Generates THE RENT IS TOO DAMN HIGH guy
-#
-# Good news everyone! <news> - Generates Professor Farnsworth
-#
-# khanify <text> - TEEEEEEEEEEEEEEEEEXT!
-#
-# Not sure if <text> or <text> - Generates Futurama Fry
-#
-# Yo dawg <text> so <text> - Generates Yo Dawg
-#
-# If <text>, <text>? - Generates Philosoraptor
-#
-# scumbag <text>, <text> - Generates Scumbag Steve
-#
-# one does not simply <text> - Generates One Does Not Simply ...
-#
-# yoda <text>, <text> - Generates Yoda
-#
-# <text> you can't explain that - Generates Bill O'Reilly
-#
-# some say <text> all we know he's called the stig - Generates the Stig
-#
-# there's no <text> in <text> - Generates there's no crying in baseball meme
-#
-# <test>, you're going to/gonna have a bad time - Generates bad time ski instructor
-#
-# imagine a world <text> - Generates Spongebob meme
+# Author:
+#   skalnik
 
 module.exports = (robot) ->
-  robot.respond /(.*) (Y U NO .+)/i, (msg) ->
-    memeGenerator msg, 2, 166088, msg.match[1], msg.match[2], (url) ->
+  unless robot.brain.data.memes?
+    robot.brain.data.memes = [
+      {
+        regex: /(memegen )?(Y U NO) (.+)/i,
+        generatorID: 2,
+        imageID: 166088
+      },
+      {
+        regex: /(memegen )?(I DON'?T ALWAYS .*) (BUT WHEN I DO,? .*)/i,
+        generatorID: 74,
+        imageID: 2485
+      },
+      {
+        regex: /(memegen )?(.*)(O\s?RLY\??.*)/i,
+        generatorID: 920,
+        imageID: 117049
+      },
+      {
+        regex: /(memegen )?(.*)(SUCCESS|NAILED IT.*)/i,
+        generatorID: 121,
+        imageID: 1031
+      },
+      {
+        regex: /(memegen )?(.*) (ALL the .*)/i,
+        generatorID: 6013,
+        imageID: 1121885
+      },
+      {
+        regex: /(memegen )?(.*) (\w+\sTOO DAMN .*)/i,
+        generatorID: 998,
+        imageID: 203665
+      },
+      {
+        regex: /(memegen )?(GOOD NEWS EVERYONE[,.!]?) (.*)/i,
+        generatorID: 1591,
+        imageID: 112464
+      },
+      {
+        regex: /(memegen )?(NOT SURE IF .*) (OR .*)/i,
+        generatorID: 305,
+        imageID: 84688
+      },
+      {
+        regex: /(memegen )?(YO DAWG .*) (SO .*)/i,
+        generatorID: 79,
+        imageID: 108785
+      },
+      {
+        regex: /(memegen )?(ALL YOUR .*) (ARE BELONG TO US)/i,
+        generatorID: 349058,
+        imageID: 2079825
+      },
+      {
+        regex: /(memegen )?(.*) (FUCK YOU)/i,
+        generatorID: 1189472,
+        imageID: 5044147
+      },
+      {
+        regex: /(memegen )?(.*) (You'?re gonna have a bad time)/i,
+        generatorID: 825296,
+        imageID: 3786537
+      },
+      {
+        regex: /(memegen )?(one does not simply) (.*)/i,
+        generatorID: 274947,
+        imageID: 1865027
+      },
+      {
+        regex: /(memegen )?(grumpy cat) (.*),(.*)/i,
+        generatorID: 1590955,
+        imageID: 6541210
+      },
+      {
+        regex: /(memegen )?(it looks like you're|it looks like you) (.*)/i,
+        generatorID: 20469,
+        imageID: 1159769
+      }
+    ]
+
+  for meme in robot.brain.data.memes
+    memeResponder robot, meme
+
+  robot.respond /(memegen )?add meme \/(.+)\/i,(.+),(.+)/i, (msg) ->
+    meme =
+      regex: new RegExp(msg.match[2], "i")
+      generatorID: parseInt(msg.match[3])
+      imageID: parseInt(msg.match[4])
+
+    robot.brain.data.memes.push meme
+    memeResponder robot, meme
+
+  robot.respond /(memegen )?k(?:ha|ah)nify (.*)/i, (msg) ->
+    memeGenerator msg, 6443, 1123022, "", khanify(msg.match[2]), (url) ->
       msg.send url
 
-  robot.respond /(I DON'?T ALWAYS .*) (BUT WHEN I DO,? .*)/i, (msg) ->
-    memeGenerator msg, 74, 2485, msg.match[1], msg.match[2], (url) ->
+  robot.respond /(memegen )?(IF .*), ((ARE|CAN|DO|DOES|HOW|IS|MAY|MIGHT|SHOULD|THEN|WHAT|WHEN|WHERE|WHICH|WHO|WHY|WILL|WON\'T|WOULD)[ \'N].*)/i, (msg) ->
+    memeGenerator msg, 17, 984, msg.match[2], msg.match[3] + (if msg.match[3].search(/\?$/)==(-1) then '?' else ''), (url) ->
       msg.send url
 
-  robot.respond /(.*)(SUCCESS|NAILED IT.*)/i, (msg) ->
-    memeGenerator msg, 121, 1031, msg.match[1], msg.match[2], (url) ->
+  robot.respond /(memegen )?((Oh|You) .*) ((Please|Tell) .*)/i, (msg) ->
+    memeGenerator msg, 542616, 2729805, msg.match[2], msg.match[4], (url) ->
       msg.send url
 
-  robot.respond /(.*) (ALL the .*)/i, (msg) ->
-    memeGenerator msg, 6013, 1121885, msg.match[1], msg.match[2], (url) ->
+memeResponder = (robot, meme) ->
+  robot.respond meme.regex, (msg) ->
+    memeGenerator msg, meme.generatorID, meme.imageID, msg.match[2], msg.match[3], (url) ->
       msg.send url
 
-  robot.respond /(.*) (TOO DAMN .*)/i, (msg) ->
-    memeGenerator msg, 998, 203665, msg.match[1], msg.match[2], (url) ->
-      msg.send url
-
-  robot.respond /(GOOD NEWS EVERYONE[,.!]?) (.*)/i, (msg) ->
-    memeGenerator msg, 1591, 112464, msg.match[1], msg.match[2], (url) ->
-      msg.send url
-
-  robot.respond /khanify (.*)/i, (msg) ->
-    memeGenerator msg, 6443, 1123022, "", khanify(msg.match[1]), (url) ->
-      msg.send url
-
-  robot.respond /(NOT SURE IF .*) (OR .*)/i, (msg) ->
-    memeGenerator msg, 305, 84688, msg.match[1], msg.match[2], (url) ->
-      msg.send url
-
-  robot.respond /(YO DAWG .*) (SO .*)/i, (msg) ->
-	  memeGenerator msg, 79, 108785, msg.match[1], msg.match[2], (url) ->
-      msg.send url
-
-  robot.respond /(IF .*), (.*\?)/i, (msg) ->
-	  memeGenerator msg, 17, 984, msg.match[1], msg.match[2], (url) ->
-      msg.send url
-
-  robot.respond /scumbag (.*), (.*)/i, (msg) ->
-	  memeGenerator msg, 142, 366130, msg.match[1], msg.match[2], (url) ->
-      msg.send url
-
-  robot.respond /(one does not simply) (.*)/i, (msg) ->
-	  memeGenerator msg, 689854, 3291562, msg.match[1], msg.match[2], (url) ->
-      msg.send url
-
-  robot.respond /yoda (.*), (.*)/i, (msg) ->
-	  memeGenerator msg, 629, 963, msg.match[1], msg.match[2], (url) ->
-      msg.send url
-
-  robot.respond /(.*) (you can't explain that)/i, (msg) ->
-	  memeGenerator msg, 9623, 439720, msg.match[1], msg.match[2], (url) ->
-      msg.send url
-
-  robot.respond /(some say .*) (all we know he's called the stig)/i, (msg) ->
-    memeGenerator msg, 11480, 1121, msg.match[1], msg.match[2], (url) ->
-      msg.send url
-
-  robot.respond /((there's|theres) no (.+)) (in (.+))/i, (msg) ->
-    memeGenerator msg, 1099784, 4728478, msg.match[1], msg.match[4], (url) ->
-      msg.send url
-
-  robot.respond /(brace (yourself|yourselves))(""|,) (.*)/i, (msg) ->
-    memeGenerator msg, 121854, 1611300, msg.match[1], msg.match[4], (url) ->
-      msg.send url
-
-  robot.respond /(.*), (you're (going to|gonna) have a bad time)/i, (msg) ->
-    memeGenerator msg, 825296, 3786537, msg.match[1], msg.match[2], (url) ->
-      msg.send url
-
-  robot.respond /(imagine a world).? (.*)/i, (msg) ->
-    memeGenerator msg, 9603, 39519, msg.match[1], msg.match[2], (url) ->
-      msg.send url
- 
 memeGenerator = (msg, generatorID, imageID, text0, text1, callback) ->
   username = process.env.HUBOT_MEMEGEN_USERNAME
   password = process.env.HUBOT_MEMEGEN_PASSWORD
